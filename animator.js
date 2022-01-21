@@ -7,6 +7,7 @@ class Animator {
 
         this.elapsedTime = 0;
         this.totalTime = this.frameCount * this.frameDuration;
+        
 
     };
 
@@ -44,5 +45,14 @@ class Animator {
     isDone() {
         return (this.elapsedTime >= this.totalTime);
     };
+
+    isAlmostDone(tick) {
+        return (this.elapsedTime + tick >= this.totalTime);
+    };
+
+    resetElapsedTime() {
+        console.log('resetting elapsedTime');
+        this.elapsedTime = 0;
+    }
 
 }

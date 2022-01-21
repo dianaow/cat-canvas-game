@@ -201,8 +201,8 @@ class Cat {
     };
 
     draw(ctx) {
-        ctx.strokeStyle = 'Red';
-        ctx.strokeRect(this.x + 20, this.y + 15, 64, 64);
+        // ctx.strokeStyle = 'Red';
+        // ctx.strokeRect(this.x + 20, this.y + 15, 64, 64);
         this.animations[this.state][this.facing].drawFrame(this.game.clockTick, ctx, this.x, this.y, 2);
     };
 }

@@ -198,6 +198,7 @@ class Cat {
             }
 
         }
+        else this.state = 0;
     };
 
     draw(ctx) {

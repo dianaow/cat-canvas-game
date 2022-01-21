@@ -120,6 +120,7 @@ class Cat {
                         }
                     }
                 }
+                else this.state = 1;
                 this.y -= this.velocity;
             } 
             else if (this.game.down) {
@@ -140,6 +141,7 @@ class Cat {
                         }
                     }
                 }
+                else this.state = 1;
                 this.y += this.velocity;
             }
             if (this.game.left) {

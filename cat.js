@@ -122,7 +122,7 @@ class Cat {
                 }
                 this.y -= this.velocity;
             } 
-            else if (this.game.down &! this.state == 3 &! this.state == 4) {
+            else if (this.game.down) {
                 if (this.state == 0) {
                     this.state = 3;
                 }
@@ -153,7 +153,7 @@ class Cat {
                         this.animations[3][1].resetElapsedTime();
                     }
                 }
-                
+                else this.state = 1;
                 this.x -= this.velocity;
             }
             else if (this.game.right) {
@@ -167,6 +167,7 @@ class Cat {
                         this.animations[3][0].resetElapsedTime();
                     }
                 }
+                else this.state = 1;
                 this.x += this.velocity;
             } 
             if (!this.game.up && !this.game.down && !this.game.left && !this.game.right)

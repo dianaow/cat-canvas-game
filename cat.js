@@ -6,6 +6,12 @@ class Cat {
 
         console.log('cat constructed');
         
+        this.health = 10;
+        this.happy = 10;
+        this.spawn_flag = true;
+        this.age = 0;
+        
+        this.BB = new BoundingBox(this.x + 25, this.y + 25, 100, 80);
         
         this.selected = false;
 
@@ -42,17 +48,16 @@ class Cat {
             [4,1]
         ]; 
         this.loadAnimations();
-    }
+    };
+
+    updateBB() {
+        this.BB = new BoundingBox(this.x + 25, this.y + 25, 100, 80);
+    };
 
     currentSelection(x, y) {
-       
-        // console.log('param.x=' + x + ' param.y=' + y);
-        // console.log('this.x=' + this.x + ' this.y=' + this.y);
-        // console.log('x='+Math.abs(x - this.x) + ' y=' +Math.abs(y - this.y));
         if ((Math.abs(x - this.x - 20) < 64) && (Math.abs(y - this.y - 15) < 64)) {
             this.selected = true;
         } else this.selected = false;
-
     };
 
     changeColor(color) {
@@ -77,12 +82,40 @@ class Cat {
         this.animations[4][1] = new Animator(this.spritesheet, 2, 128, 64, 64, 4, 0.1, 0, false, true);
     };
 
-    
+    spawnCat(x, y) {
+        
+        console.log(this.spawn_flag);
+        let color = Math.round(Math.random());
+        if (this.spawn_flag) {
+            if (color == 0) {
+                console.log('spawning');
+                this.spawn_flag = false;
+                let white_cat = new Cat(gameEngine, x, y, 'white', true);
+                this.game.addEntity(white_cat);
+                
+            }
+            else {
+                console.log('spawning');
+                this.spawn_flag = false;
+                let orange_cat = new Cat(gameEngine, x, y, 'orange', false);
+                this.game.addEntity(orange_cat);
+                
+            }
+        }
+        this.spawn_flag = false;
+    }
 
     update() {
 
+        if (this.health <= 0 || this.age >= 14) {
+            this.removeFromWorld = true;
+        }
+
+        this.updateBB();
+
         // console.log(this.selected);
         const TICK = this.game.clockTick;
+        // console.log("TICK" + TICK);
 
         if (this.game.clicked) {
             let mousePoint = this.game.mouse ? this.game.mouse : this.game.click; 
@@ -90,8 +123,57 @@ class Cat {
             
         }
 
+        // Health & Happiness Constantly Decrementing
+        this.health -= TICK/30;
+        this.happy -= TICK/30;
+        // Age growing
+        this.age += TICK/10;
+
+        console.log("AGE: " + this.age);
+
+        var that = this;
+        this.game.entities.forEach(function (entity) {
+            //Don't collide with self, only check entity's with bounding boxes
+            if (entity !== that && entity.BB && that.BB.collide(entity.BB)) {
+
+                // Currently only handling map block collisions, no entity collisions yet
+                if (entity instanceof Food) {
+                    // Case 1: Jumping up while hitting the side
+                    // Case 2: Walking into the side while on the ground
+                    that.health = 10;
+                    console.log('health reset to:' + that.health);
+                }
+                if (entity instanceof Toy) {
+                    that.happy = 10;
+                    console.log('happy reset to:' + that.happy);
+                }
+
+                if (entity instanceof Cat) {
+                    if (that.happy > 8 && that.spawn_flag && that.age > 2) {
+                        if (that.spawn_flag) {
+                            let color = Math.round(Math.random());
+                            if (color == 0) {
+                                console.log('spawning');
+                                that.spawn_flag = false;
+                                let white_cat = new Cat(gameEngine, that.x + 50, that.y + 50, 'white', true);
+                                that.game.addEntity(white_cat);
+                                
+                            }
+                            else {
+                                console.log('spawning');
+                                that.spawn_flag = false;
+                                let orange_cat = new Cat(gameEngine, that.x + 50, that.y + 50, 'orange', false);
+                                that.game.addEntity(orange_cat);
+                                
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
         if (this.selected) {
-            console.log('this.state: ' + this.state + ', this.facing: ' + this.facing);
+            // console.log('this.state: ' + this.state + ', this.facing: ' + this.facing);
            
             // if (this.color == 'white') {
             //     this.changeColor('white');
@@ -203,7 +285,7 @@ class Cat {
 
     draw(ctx) {
         // ctx.strokeStyle = 'Red';
-        // ctx.strokeRect(this.x + 20, this.y + 15, 64, 64);
-        this.animations[this.state][this.facing].drawFrame(this.game.clockTick, ctx, this.x, this.y, 2);
+        ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
+        this.animations[this.state][this.facing].drawFrame(this.game.clockTick, ctx, this.x, this.y, 2.5);
     };
 }

@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <style>
+        body {
+            font-size: 30px;
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+    </style>
     <meta charset="utf-8">
     <title>491 Individual Animation Assignment: Rebekah Parkhurst</title>
   
     <script type="text/javascript" src="./assetmanager.js"></script>
     <script type="text/javascript" src="./timer.js"></script>
     <script type="text/javascript" src="./gameengine.js"></script>
+    <script type="text/javascript" src="./bars.js"></script>
     <script type="text/javascript" src="./util.js"></script>
     <script type="text/javascript" src="./main.js"></script>
     <script type="text/javascript" src="./animator.js"></script>
@@ -19,8 +26,17 @@
     
 </head>
 <body>
+
     <h1 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 48px;">Click a cat to select it!</h1>
     <h2 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 30px;">Move the cat with WASD ^_^</h2>
+    <h2 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 30px;">Cats will breed if you put them together, but only if they're happy and old enough!</h2>
     <canvas id="gameWorld" width="1200" height="1200"  style="background-image: url('./carpet-bg.jpg'); border: 1px solid black" tabindex ="0" autofocus></canvas>
+<div> <br />
+<p style="font-size:40px; font-weight:bold; color:#218cff; -webkit-text-stroke-width: 1px;
+-webkit-text-stroke-color: black;">HealthBar</p> <p style="font-size:40px; font-weight:bold;  color:#fff891; -webkit-text-stroke-width: 1px;
+            -webkit-text-stroke-color: black;"> Happiness Bar</p>
+
+</div>
+
 </body>
 </html>

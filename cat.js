@@ -5,11 +5,17 @@ class Cat {
         Object.assign(this, { game, x, y, color, current });
 
         console.log('cat constructed');
+
+        this.radius = 10;
         
+        this.maxhealth = 10;
         this.health = 10;
         this.happy = 10;
         this.spawn_flag = true;
         this.age = 0;
+
+        this.healthBar = new HealthBar(this);
+        this.HappyBar = new HappyBar(this);
         
         this.BB = new BoundingBox(this.x + 25, this.y + 25, 100, 80);
         
@@ -82,34 +88,14 @@ class Cat {
         this.animations[4][1] = new Animator(this.spritesheet, 2, 128, 64, 64, 4, 0.1, 0, false, true);
     };
 
-    spawnCat(x, y) {
-        
-        console.log(this.spawn_flag);
-        let color = Math.round(Math.random());
-        if (this.spawn_flag) {
-            if (color == 0) {
-                console.log('spawning');
-                this.spawn_flag = false;
-                let white_cat = new Cat(gameEngine, x, y, 'white', true);
-                this.game.addEntity(white_cat);
-                
-            }
-            else {
-                console.log('spawning');
-                this.spawn_flag = false;
-                let orange_cat = new Cat(gameEngine, x, y, 'orange', false);
-                this.game.addEntity(orange_cat);
-                
-            }
-        }
-        this.spawn_flag = false;
-    }
-
     update() {
 
         if (this.health <= 0 || this.age >= 14) {
             this.removeFromWorld = true;
         }
+        // document.getElementById("health").innerHTML = Math.round(this.health);
+        // document.getElementById("happy").innerHTML = Math.round(this.happy);
+        // document.getElementById("age").innerHTML = Math.round(this.age);
 
         this.updateBB();
 
@@ -120,7 +106,12 @@ class Cat {
         if (this.game.clicked) {
             let mousePoint = this.game.mouse ? this.game.mouse : this.game.click; 
             this.currentSelection(mousePoint.x, mousePoint.y);
-            
+
+            if (this.game.mouseDrag && this.selected) {
+                let mousePoint = this.game.mouse ? this.game.mouse : this.game.click; 
+                this.x = mousePoint.x;
+                this.y = mousePoint.y;
+            }
         }
 
         // Health & Happiness Constantly Decrementing
@@ -128,8 +119,6 @@ class Cat {
         this.happy -= TICK/30;
         // Age growing
         this.age += TICK/10;
-
-        console.log("AGE: " + this.age);
 
         var that = this;
         this.game.entities.forEach(function (entity) {
@@ -173,14 +162,6 @@ class Cat {
         });
 
         if (this.selected) {
-            // console.log('this.state: ' + this.state + ', this.facing: ' + this.facing);
-           
-            // if (this.color == 'white') {
-            //     this.changeColor('white');
-            // }
-            // else if (this.color == 'orange') {
-            //     this.changeColor('orange');
-            // }
 
             //Update position
             if (this.game.up) {
@@ -284,8 +265,9 @@ class Cat {
     };
 
     draw(ctx) {
-        // ctx.strokeStyle = 'Red';
-        ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
+        // ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
         this.animations[this.state][this.facing].drawFrame(this.game.clockTick, ctx, this.x, this.y, 2.5);
+        this.healthBar.draw(ctx);
+        this.HappyBar.draw(ctx);
     };
 }

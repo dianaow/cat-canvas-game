@@ -12,6 +12,7 @@ class GameEngine {
 
         // Information on the input
         this.click = null;
+        this.mouseDrag = false;
         this.mouse = null;
         this.wheel = null;
         this.left = false;
@@ -129,12 +130,14 @@ class GameEngine {
 
         this.ctx.canvas.addEventListener("mousedown", function (e) {
             that.clicked = true;
+            that.mouseDrag = true;
             //console.log(getXandY(e));
             that.click = getXandY(e);
         }, false);
 
         this.ctx.canvas.addEventListener("mouseup", function (e) {
             that.clicked = false;
+            that.mouseDrag = false;
             //console.log(getXandY(e));
             that.click = getXandY(e);
         }, false);

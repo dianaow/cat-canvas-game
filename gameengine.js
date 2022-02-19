@@ -1,5 +1,4 @@
 // This game shell was happily modified from Googler Seth Ladd's "Bad Aliens" game and his Google IO talk in 2011
-console.log('loading in gameengine.js');
 
 class GameEngine {
     constructor(options) {
@@ -12,8 +11,10 @@ class GameEngine {
 
         // Information on the input
         this.click = null;
+        this.clicked = false;
         this.mouseDrag = false;
         this.mouse = null;
+        this.mouseUp = true;
         this.wheel = null;
         this.left = false;
         this.right = false;
@@ -117,34 +118,21 @@ class GameEngine {
             this.mouse = getXandY(e);
         });
 
-        // this.ctx.canvas.addEventListener("click", e => {
-        //     if (this.options.debugging) {
-        //         console.log("CLICK", getXandY(e));
-        //     }
-        //     this.click = getXandY(e);
-        //     const pos = {
-        //         x: e.clientX,
-        //         y: e.clientY
-        //     };
-        // });
-
         this.ctx.canvas.addEventListener("mousedown", function (e) {
+            
             that.clicked = true;
-            that.mouseDrag = true;
-            //console.log(getXandY(e));
+            that.mouseUp = false;
             that.click = getXandY(e);
         }, false);
 
         this.ctx.canvas.addEventListener("mouseup", function (e) {
             that.clicked = false;
-            that.mouseDrag = false;
-            //console.log(getXandY(e));
+            that.mouseUp = true;
             that.click = getXandY(e);
         }, false);
 
         this.ctx.canvas.addEventListener("wheel", e => {
             if (this.options.debugging) {
-                console.log("WHEEL", getXandY(e), e.wheelDelta);
             }
             if (this.options.prevent.scrolling) {
                 e.preventDefault(); // Prevent Scrolling

@@ -16,11 +16,13 @@ class Toy {
         if (this.game.clicked) {
             let mousePoint = this.game.mouse ? this.game.mouse : this.game.click; 
             if((Math.abs(mousePoint.x - this.x) < 60) && (Math.abs(mousePoint.y - this.y) < 45)) {
-                this.selected = true;
+                selector.select(this);
             } else {
-                this.selected = false;
+                if (selector.isSelected(this)) {
+                    selector.deselect(this);
+                }
             }
-            if (this.game.mouseDrag && this.selected) {
+            if (selector.isSelected(this)) {
                 let mousePoint = this.game.mouse ? this.game.mouse : this.game.click; 
                 this.x = mousePoint.x;
                 this.y = mousePoint.y;

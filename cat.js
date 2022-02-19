@@ -3,6 +3,7 @@ class Cat {
         Object.assign(this, { game, x, y, color, current });
         
         this.maxhealth = 10;
+        this.maxhappy = 10;
         this.health = 10;
         this.happy = 10;
         this.spawn_flag = true;
@@ -127,7 +128,7 @@ class Cat {
         this.happy -= TICK/30;
 
         // Age growing
-        this.age += TICK/10;
+        this.age += TICK/40;
 
         var that = this;
         this.game.entities.forEach(function (entity) {
@@ -276,10 +277,10 @@ class Cat {
     };
 
     draw(ctx) {
-        ctx.strokeStyle = 'Red';
-        ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
-        ctx.strokeStyle = "blue";
-        ctx.strokeRect(this.midpoint_x-5, this.midpoint_y-5, 10, 10);
+        // ctx.strokeStyle = 'Red';
+        // ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
+        // ctx.strokeStyle = "blue";
+        // ctx.strokeRect(this.midpoint_x-5, this.midpoint_y-5, 10, 10);
         this.animations[this.state][this.facing].drawFrame(this.game.clockTick, ctx, this.x, this.y, 2.5);
         this.healthBar.draw(ctx);
         this.HappyBar.draw(ctx);

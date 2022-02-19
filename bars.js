@@ -22,7 +22,7 @@ class HappyBar {
     };
 
     draw(ctx) {
-        var ratio = this.cat.health / this.cat.maxhealth;
+        var ratio = this.cat.happy / this.cat.maxhappy;
         ctx.strokeStyle = "#a6b0ba";
         ctx.fillStyle = ratio < 0.2 ? "Red" : "#fff891";
         ctx.fillRect(this.cat.x , this.cat.y - this.cat.BB.height/8, this.cat.BB.width * ratio, 10);

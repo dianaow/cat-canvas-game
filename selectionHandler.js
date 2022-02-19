@@ -19,7 +19,6 @@ class Selector {
     };
 
     deselect(entity) {
-        // console.log('deselecting ' + entity);
         if (this.entity!=null) {
             this.entity = null;
         }

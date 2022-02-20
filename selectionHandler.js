@@ -14,7 +14,7 @@ class Selector {
         if (this.entity == null) {
             this.entity = entity;
         } else {
-            console.log('rejected selecting ' + entity);
+            // console.log('rejected selecting ' + entity);
         }
     };
 
@@ -26,7 +26,7 @@ class Selector {
 
     getSelected() {
         return this.entity;
-    }
+    };
 
     draw(ctx) {
     };

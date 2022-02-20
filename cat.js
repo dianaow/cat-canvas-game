@@ -8,11 +8,15 @@ class Cat {
         this.happy = 10;
         this.spawn_flag = true;
         this.age = 0;
-        
+        this.duration = 0;
+        this.direction = 0;
+        this.moving = false;
+
         this.healthBar = new HealthBar(this);
         this.HappyBar = new HappyBar(this);
         
         this.BB = new BoundingBox(this.x + 25, this.y + 25, 100, 80);
+
 
 
         this.current = false;
@@ -21,6 +25,9 @@ class Cat {
         this.y = y;
         this.color = color;
         this.breedTimer = 0;
+        this.attractionTimer = 0;
+        this.timeSinceLastMoved = 0;
+
         this.midpoint_x = this.x + (this.BB.width - 25)/2;
         this.midpoint_y = this.y + (this.BB.height - 25)/2;
         
@@ -84,6 +91,35 @@ class Cat {
         this.animations[4][1] = new Animator(this.spritesheet, 2, 128, 64, 64, 4, 0.1, 0, false, true);
     };
 
+    willBreed(elapsedTime, spawn_flag) {
+        if (spawn_flag) {
+            console.log('time=' + Math.round(elapsedTime) + " spawn_flag=" + spawn_flag);
+            spawn_flag = false;
+            let chance =  elapsedTime > 60 ? this.probability(0.8) : elapsedTime > 30 ? this.probability(0.5) : 
+                        elapsedTime > 20 ? this.probability(0.2) : this.probability(0.0);           
+            if (chance == 1) {
+                return true;
+            }
+        }
+            return false;
+    };
+
+    willMove(elapsedTime) {
+        
+        let chance = elapsedTime > 80 ? this.probability(0.08) : this.probability(0.001);
+        if (chance==1) {
+            console.log("will move");
+        }
+        return (chance == 1);
+    };
+
+
+    /** Returns 0 or 1 based on probability of n */
+    probability(n) {
+        let rand = Math.random()
+        return rand <= n;
+    };
+
     selectCat(x, y) {
         if ((Math.abs(x - this.midpoint_x) < 40) && (Math.abs(y - this.midpoint_y) < 64)) {
             if (!selector.isSelected(this)) {
@@ -93,10 +129,8 @@ class Cat {
         else {
             if (selector.isSelected(this)) {
                 selector.deselect(this);
-                console.log("deselecting cat");
             }
         }
-
     };
 
     update() {
@@ -108,15 +142,15 @@ class Cat {
         this.updateBB();
 
         const TICK = this.game.clockTick;
+        this.timeSinceLastMoved += TICK;
+
         this.breedTimer += TICK;
         this.spawn_flag = (this.breedTimer > 20);
 
         let mousePoint = this.game.mouse ? this.game.mouse : this.game.click; 
 
         if (this.game.clicked) {
-            
             this.selectCat(mousePoint.x, mousePoint.y);
-
             if (selector.isSelected(this)) {
                 this.x = mousePoint.x - (this.BB.width + 25)/2;
                 this.y = mousePoint.y - (this.BB.height + 25)/2;
@@ -148,29 +182,65 @@ class Cat {
                 }
 
                 if (entity instanceof Cat) {
-                    if (that.happy > 8 && that.spawn_flag && that.age > 2) {
-                        if (that.spawn_flag) {
-                            let color = Math.round(Math.random());
-                            if (color == 0) {
-                                that.spawn_flag = false;
-                                that.breedTimer = 0;
-                                let white_cat = new Cat(gameEngine, that.x + 50, that.y + 50, 'white', true);
-                                that.game.addEntity(white_cat);
-                                
-                            }
-                            else {
-                                that.spawn_flag = false;
-                                that.breedTimer = 0;
-                                let orange_cat = new Cat(gameEngine, that.x + 50, that.y + 50, 'orange', false);
-                                that.game.addEntity(orange_cat);
-                                
-                            }
+                    if (that.happy > 8 && that.age > 0.1 && selector.isSelected(that) && that.willBreed(that.breedTimer, that.spawn_flag)) {
+                        that.spawn_flag = false;
+                        that.breedTimer = 0;
+                        let color = Math.round(Math.random());
+                        if (entity.color == 'white' && that.color == 'white') that.game.addEntity(new Cat(gameEngine, that.x + 50, that.y + 50, 'white', true));
+                        else if (entity.color == 'orange' && that.color == 'orange') that.game.addEntity(new Cat(gameEngine, that.x + 50, that.y + 50, 'orange', true));
+                        if (color == 0) {
+                            let white_cat = new Cat(gameEngine, that.x + 50, that.y + 50, 'white', true);
+                            that.game.addEntity(white_cat);
+                            
+                        }
+                        else {
+                            let orange_cat = new Cat(gameEngine, that.x + 50, that.y + 50, 'orange', false);
+                            that.game.addEntity(orange_cat);
                         }
                     }
                 }
             }
         });
 
+        /** RANDOM MOVEMENT **/
+        if (this.willMove(this.timeSinceLastMoved) &! this.moving) {
+            
+            
+            this.duration = Math.round(Math.random() * 5);
+            this.direction = Math.round(Math.random() * 4);
+            this.moving = true;
+            
+        }
+        
+        if (this.moving) {
+            switch(this.direction) {
+                case 0:
+                    if (this.x > 0) this.x -= this.velocity;
+                    this.duration -= this.game.clockTick*2;
+                    break;
+                case 1:
+                    if (this.x < 1100) this.x += this.velocity;
+                    this.duration -= this.game.clockTick*2;
+                    break;
+                case 2: 
+                    if (this.y > 0) this.y -= this.velocity;
+                    this.duration -= this.game.clockTick*2;
+                    break;
+                case 3:
+                    if (this.y < 1100) this.y += this.velocity;
+                    this.duration -= this.game.clockTick*2;
+                    break;
+            }
+            if (this.duration <= 0) {
+                this.timeSinceLastMoved = 0;
+                this.moving = false;
+            }
+        }
+
+
+
+
+        /** PLAYR CONTROLLED MOVEMENT **/
         if (selector.isSelected(this)) {
 
             //Update position
@@ -197,6 +267,7 @@ class Cat {
                 this.y -= this.velocity;
             } 
             else if (this.game.down) {
+                
                 if (this.state == 0) {
                     this.state = 3;
                 }
@@ -218,6 +289,7 @@ class Cat {
                 this.y += this.velocity;
             }
             if (this.game.left) {
+                
                 this.facing = 1;
                 if (this.state == 0) {
                     this.state = 3;

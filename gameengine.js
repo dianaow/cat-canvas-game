@@ -1,5 +1,3 @@
-// This game shell was happily modified from Googler Seth Ladd's "Bad Aliens" game and his Google IO talk in 2011
-
 class GameEngine {
     constructor(options) {
         // What you will use to draw
@@ -21,6 +19,7 @@ class GameEngine {
         this.up = false;
         this.down = false;
         this.keys = {};
+        this.diedCount = 0
 
         // THE KILL SWITCH
         this.running = false;
@@ -47,6 +46,20 @@ class GameEngine {
             this.loop();
             if (this.running) {
                 requestAnimFrame(gameLoop, this.ctx.canvas);
+            } else {
+                this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+                let cagedCats = this.entities.filter(d => d.caged)
+                let totalHealth = cagedCats.map(d => d.health).reduce(function (a, b) {return a + b;}, 0);
+                let totalHappiness = cagedCats.map(d => d.happy).reduce(function (a, b) {return a + b;}, 0);
+                let totalDuration = Math.round(this.clockTick * 1000 * 100) / 100
+                let totalScore = parseFloat(Math.round(totalHealth) + Math.round(totalHappiness))
+                this.ctx.fillStyle = "black";
+                this.ctx.font = "50px Arial";
+                this.ctx.fillText("GAME OVER!", this.ctx.canvas.width/2 - 100, this.ctx.canvas.height/2 - 150);
+                this.ctx.fillText("Total Health: " + Math.round(totalHealth), this.ctx.canvas.width/2 - 200, this.ctx.canvas.height/2 - 100);
+                this.ctx.fillText("Total Happiness: " + Math.round(totalHappiness), this.ctx.canvas.width/2 - 200, this.ctx.canvas.height/2 - 50);
+                this.ctx.fillText("Game Duration: " + totalDuration, this.ctx.canvas.width/2 - 200, this.ctx.canvas.height/2);
+                this.ctx.fillText("FINAL SCORE: " + totalScore, this.ctx.canvas.width/2 - 200, this.ctx.canvas.height/2 + 50);
             }
         };
         gameLoop();
@@ -59,57 +72,6 @@ class GameEngine {
             x: e.clientX - this.ctx.canvas.getBoundingClientRect().left,
             y: e.clientY - this.ctx.canvas.getBoundingClientRect().top
         });
-
-        this.ctx.canvas.addEventListener('keydown', function (e) {
-            switch (e.code) {
-                case "KeyA":
-                    that.left = true;
-                    that.right = false;
-                    break;
-                case "KeyD":
-                    that.right = true;
-                    that.left = false;
-                    break;
-                case "KeyW":
-                    that.up = true;
-                    that.down = false;
-                    break;
-                case "KeyS":
-                    that.down = true;
-                    that.up = false;
-                    break;    
-            }
-        }, false);
-
-        this.ctx.canvas.addEventListener('keyup', function (e) {
-            switch (e.code) {
-                case "KeyA":
-                    that.left = false;
-                    break;
-                case "KeyD":
-                    that.right = false;
-                    break;
-                case "KeyW":
-                    that.up = false;
-                    break;
-                case "KeyS":
-                    that.down = false;
-                    break;    
-            }
-        }
-        )
-
-        this.ctx.canvas.addEventListener('keypress', function (e) {
-            switch (e.code) {
-                case "KeyO":
-                    that.color = 'orange';
-                    break;
-                case "KeyL":
-                    that.color = 'white';
-                    break; 
-            }
-        }
-        )
 
         this.ctx.canvas.addEventListener("mousemove", e => {
             // if (this.options.debugging) {
@@ -170,17 +132,29 @@ class GameEngine {
 
     update() {
         let entitiesCount = this.entities.length;
+        let cagedCats = this.entities.filter(d => d.caged === true)
+        let cats = this.entities.filter(d => d.type === 'cat')
 
         for (let i = 0; i < entitiesCount; i++) {
             let entity = this.entities[i];
-
             if (!entity.removeFromWorld) {
                 entity.update();
             }
         }
 
+        if(this.diedCount >= 3) {
+            this.running = false;
+            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        }
+
+        if(cagedCats.length === cats.length) {
+            this.running = false;
+            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        }
+
         for (let i = this.entities.length - 1; i >= 0; --i) {
             if (this.entities[i].removeFromWorld) {
+                this.diedCount += 1
                 this.entities.splice(i, 1);
             }
         }

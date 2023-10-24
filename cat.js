@@ -1,35 +1,31 @@
 class Cat {
-    constructor(game, x, y, color, current, selected) {
-        Object.assign(this, { game, x, y, color, current });
+    constructor(game, x, y, color, id) {
+        Object.assign(this, { game, x, y, color, id });
         
+        this.type = 'cat';
         this.maxhealth = 10;
         this.maxhappy = 10;
-        this.health = 10;
+        this.health = Math.max(5, Math.round(Math.random()) * 10);
         this.happy = 10;
         this.spawn_flag = true;
-        this.age = 0;
         this.duration = 0;
         this.direction = 0;
         this.moving = false;
-
+        this.caged = false
         this.healthBar = new HealthBar(this);
         this.HappyBar = new HappyBar(this);
         
-        this.BB = new BoundingBox(this.x + 25, this.y + 25, 100, 80);
+        this.BB = new BoundingBox(this.x, this.y, 64, 64);
 
-
-
-        this.current = false;
-        // this.game.cat = this;
+        this.id = id
         this.x = x;
         this.y = y;
         this.color = color;
         this.breedTimer = 0;
-        this.attractionTimer = 0;
         this.timeSinceLastMoved = 0;
 
-        this.midpoint_x = this.x + (this.BB.width - 25)/2;
-        this.midpoint_y = this.y + (this.BB.height - 25)/2;
+        this.midpoint_x = this.x + (this.BB.width)/2;
+        this.midpoint_y = this.y + (this.BB.height)/2;
         
         this.velocity = 3;
         if (this.color == 'white') {
@@ -41,9 +37,7 @@ class Cat {
         
         // kitty states
         this.state = 0; // 0 = idle; 1 = walking; 2 = ???; 3 = standing; 4 = sitting;
-        this.facing = 0; // 0 = right; 1 = left.
-        this.sitting = false;
-        this.standing = false;
+        this.facing = Math.round(Math.random()); // 0 = right; 1 = left.
 
         this.animations = [
             [0,0],
@@ -58,15 +52,15 @@ class Cat {
             [4,1]
         ]; 
         this.loadAnimations();
-
+          
         selector.deselect(this);
 
     };
 
     updateBB() {
-        this.BB = new BoundingBox(this.x + 25, this.y + 25, 100, 80);
-        this.midpoint_x = this.x + (this.BB.width + 25)/2;
-        this.midpoint_y = this.y + (this.BB.height + 25)/2;  
+        this.BB = new BoundingBox(this.x, this.y, 64, 64);
+        this.midpoint_x = this.x + (this.BB.width)/2;
+        this.midpoint_y = this.y + (this.BB.height)/2;  
     };
 
     changeColor(color) {
@@ -92,24 +86,20 @@ class Cat {
     };
 
     willBreed(elapsedTime, spawn_flag) {
+        if(this.caged) return false
         if (spawn_flag) {
-            console.log('time=' + Math.round(elapsedTime) + " spawn_flag=" + spawn_flag);
             spawn_flag = false;
-            let chance =  elapsedTime > 60 ? this.probability(0.8) : elapsedTime > 30 ? this.probability(0.5) : 
-                        elapsedTime > 20 ? this.probability(0.2) : this.probability(0.0);           
+            let chance =  elapsedTime > 60 ? this.probability(0.34) : elapsedTime > 30 ? this.probability(0.25) : 
+                        elapsedTime > 20 ? this.probability(0.1) : this.probability(0.0);           
             if (chance == 1) {
                 return true;
             }
         }
-            return false;
+        return false;
     };
 
     willMove(elapsedTime) {
-        
-        let chance = elapsedTime > 80 ? this.probability(0.08) : this.probability(0.001);
-        if (chance==1) {
-            console.log("will move");
-        }
+        let chance = elapsedTime > 80 ? this.probability(0.3) : this.probability(0.1);
         return (chance == 1);
     };
 
@@ -121,7 +111,7 @@ class Cat {
     };
 
     selectCat(x, y) {
-        if ((Math.abs(x - this.midpoint_x) < 40) && (Math.abs(y - this.midpoint_y) < 64)) {
+        if ((Math.abs(x - this.midpoint_x) < 64) && (Math.abs(y - this.midpoint_y) < 64)) {
             if (!selector.isSelected(this)) {
                 selector.select(this);
             }
@@ -135,12 +125,19 @@ class Cat {
 
     update() {
 
-        if (this.health <= 0 || this.age >= 14) {
+        if (this.health <= 0) {
             this.removeFromWorld = true;
         }
 
         this.updateBB();
 
+        const centerRect = {
+            x: window.innerWidth * 0.4,
+            y: window.innerHeight * 0.4,
+            width: window.innerWidth * 0.2,
+            height: window.innerHeight * 0.2
+          };
+          
         const TICK = this.game.clockTick;
         this.timeSinceLastMoved += TICK;
 
@@ -151,75 +148,65 @@ class Cat {
 
         if (this.game.clicked) {
             this.selectCat(mousePoint.x, mousePoint.y);
-            if (selector.isSelected(this)) {
-                this.x = mousePoint.x - (this.BB.width + 25)/2;
-                this.y = mousePoint.y - (this.BB.height + 25)/2;
+            if (selector.isSelected(this) && !this.caged) {
+                this.x = mousePoint.x - (this.BB.width)/2;
+                this.y = mousePoint.y - (this.BB.height)/2;
             }
         }
 
-        // Health & Happiness Constantly Decrementing
-        this.health -= TICK/30;
-        this.happy -= TICK/30;
-
-        // Age growing
-        this.age += TICK/40;
+        // Health & Happiness adjustments
+        if(this.duration < 5 && !this.caged) {
+            this.health -= TICK/2.5;
+            this.happy -= TICK/2.5;   
+        } else if(!this.caged){
+            this.health -= TICK/5;
+            this.happy -= TICK/3;
+        } else if(this.caged){
+            this.health += TICK/3;
+            this.happy += TICK/5;
+        }
 
         var that = this;
         this.game.entities.forEach(function (entity) {
-
             //Don't collide with self, only check entity's with bounding boxes
             if (entity !== that && entity.BB && that.BB.collide(entity.BB)) {
-
-                // Currently only handling map block collisions, no entity collisions yet
-                if (entity instanceof Food) {
-                    // Case 1: Jumping up while hitting the side
-                    // Case 2: Walking into the side while on the ground
-                    that.health = 10;
-                }
-
-                if (entity instanceof Toy) {
-                    that.happy = 10;
-                }
-
+                //If a cat collides with another cat, there is a probability of breeding
                 if (entity instanceof Cat) {
-                    if (that.happy > 8 && that.age > 0.1 && selector.isSelected(that) && that.willBreed(that.breedTimer, that.spawn_flag)) {
-                        that.spawn_flag = false;
-                        that.breedTimer = 0;
+                    if (that.willBreed(that.breedTimer, that.spawn_flag)) {
                         let color = Math.round(Math.random());
-                        if (entity.color == 'white' && that.color == 'white') that.game.addEntity(new Cat(gameEngine, that.x + 50, that.y + 50, 'white', true));
-                        else if (entity.color == 'orange' && that.color == 'orange') that.game.addEntity(new Cat(gameEngine, that.x + 50, that.y + 50, 'orange', true));
                         if (color == 0) {
-                            let white_cat = new Cat(gameEngine, that.x + 50, that.y + 50, 'white', true);
+                            let white_cat = new Cat(gameEngine, that.x - 50, that.y - 50, 'white', that.breedTimer);
                             that.game.addEntity(white_cat);
-                            
                         }
                         else {
-                            let orange_cat = new Cat(gameEngine, that.x + 50, that.y + 50, 'orange', false);
+                            let orange_cat = new Cat(gameEngine, that.x - 50, that.y - 50, 'orange', that.breedTimer);
                             that.game.addEntity(orange_cat);
                         }
+                        that.spawn_flag = false;
+                        that.breedTimer = 0;
                     }
                 }
             }
         });
 
         /** RANDOM MOVEMENT **/
-        if (this.willMove(this.timeSinceLastMoved) &! this.moving) {
-            
-            
-            this.duration = Math.round(Math.random() * 5);
+        if (this.willMove(this.timeSinceLastMoved) && !this.moving && !this.caged) {
+            //console.log('start animation', this.id)
+            //this.duration = Math.round(Math.random() * 15);
+            this.duration = 15
             this.direction = Math.round(Math.random() * 4);
             this.moving = true;
-            
-        }
-        
-        if (this.moving) {
+            this.state = 1
+        } 
+
+        if (this.moving && !this.caged && !selector.isSelected(this)) {
             switch(this.direction) {
                 case 0:
                     if (this.x > 0) this.x -= this.velocity;
                     this.duration -= this.game.clockTick*2;
                     break;
                 case 1:
-                    if (this.x < 1100) this.x += this.velocity;
+                    if ((this.x - this.BB.width) < window.innerWidth) this.x += this.velocity;
                     this.duration -= this.game.clockTick*2;
                     break;
                 case 2: 
@@ -227,12 +214,49 @@ class Cat {
                     this.duration -= this.game.clockTick*2;
                     break;
                 case 3:
-                    if (this.y < 1100) this.y += this.velocity;
+                    if ((this.y - this.BB.height) < window.innerHeight) this.y += this.velocity;
                     this.duration -= this.game.clockTick*2;
                     break;
             }
+
+            // Check for collisions with walls
+            if(this.direction === 0 || this.direction === 1){
+                if (this.x < this.BB.width || (this.x > (window.innerWidth - this.BB.width))) {
+                    // Collision with left or right wall
+                    //console.log('colliding with left or right wall', this.id)
+                    this.velocity *= -1; // Reverse horizontal direction
+                    this.facing = this.facing === 0 ? 1 : 0
+                    this.health -= 1
+                }
+            }
+            
+            if(this.direction === 2 || this.direction === 3){
+                if (this.y < this.BB.height || (this.y > (window.innerHeight - this.BB.height))) {
+                    // Collision with top or bottom wall
+                    //console.log('colliding with top or bottom wall', this.id)
+                    this.velocity *= -1; // Reverse vertical direction
+                    this.facing = this.facing === 0 ? 1 : 0
+                    this.health -= 1
+                }
+            }
+            
+            // Check for collision with the center rectangle
+            if (
+                this.x > (centerRect.x - this.BB.width) &&
+                this.x < (centerRect.x + centerRect.width + this.BB.width*2) && 
+                this.y > (centerRect.y - this.BB.width) &&
+                this.y < (centerRect.y + centerRect.height + this.BB.height*2)
+            ) {
+                //console.log('colliding with cage', this.id)
+                this.velocity *= -1; // Reverse horizontal direction
+                this.facing = this.facing === 0 ? 1 : 0
+                this.health -= 1
+            }
+       
             if (this.duration <= 0) {
+                //console.log('finish animation', this.id)
                 this.timeSinceLastMoved = 0;
+                this.state = 4
                 this.moving = false;
             }
         }
@@ -241,119 +265,40 @@ class Cat {
 
 
         /** PLAYR CONTROLLED MOVEMENT **/
-        if (selector.isSelected(this)) {
-
+        if (
+            !this.caged &&
+            selector.isSelected(this) && 
+            this.x > (centerRect.x + 10) &&
+            this.x < (centerRect.x + centerRect.width - this.BB.width) && 
+            this.y > (centerRect.y + 10) &&
+            this.y < (centerRect.y + centerRect.height - this.BB.height)
+        ) {
             //Update position
-            if (this.game.up) {
-                
-                if (this.state == 0) {
-                    this.state = 3; // state 3 is the transition from sit-to-stand
-                }
-                else if (this.state == 3) {
-                    if (this.facing == 0) {
-                        if (this.animations[3][0].isAlmostDone(TICK)) {
-                            this.state = 1; // walking animation
-                            this.animations[3][0].resetElapsedTime();
-                        }
-                    }
-                    else if (this.facing == 1) {
-                        if (this.animations[3][1].isAlmostDone(TICK)) {
-                            this.state = 1; // walking animation
-                            this.animations[3][1].resetElapsedTime();
-                        }
-                    }
-                }
-                else this.state = 1;
-                this.y -= this.velocity;
-            } 
-            else if (this.game.down) {
-                
-                if (this.state == 0) {
-                    this.state = 3;
-                }
-                else if (this.state == 3) {
-                    if (this.facing == 0) {
-                        if (this.animations[3][0].isAlmostDone(TICK)) {
-                            this.state = 1;
-                            this.animations[3][0].resetElapsedTime();
-                        }
-                    }
-                    else if (this.facing == 1) {
-                        if (this.animations[3][1].isAlmostDone(TICK)) {
-                            this.state = 1;
-                            this.animations[3][1].resetElapsedTime();
-                        }
-                    }
-                }
-                else this.state = 1;
-                this.y += this.velocity;
-            }
-            if (this.game.left) {
-                
-                this.facing = 1;
-                if (this.state == 0) {
-                    this.state = 3;
-                }
-                else if (this.state == 3) {
-                    if (this.animations[3][1].isAlmostDone(TICK)) {
-                        this.state = 1;
-                        this.animations[3][1].resetElapsedTime();
-                    }
-                }
-                else this.state = 1;
-                this.x -= this.velocity;
-            }
-            else if (this.game.right) {
-                this.facing = 0;
-                if (this.state == 0) {
-                    this.state = 3;
-                }
-                else if (this.state == 3) {
-                    if (this.animations[3][0].isAlmostDone(TICK)) {
-                        this.state = 1;
-                        this.animations[3][0].resetElapsedTime();
-                    }
-                }
-                else this.state = 1;
-                this.x += this.velocity;
-            } 
-            if (!this.game.up && !this.game.down && !this.game.left && !this.game.right)
-            {  
-                
-                if (this.state == 1) {
-                    this.state = 4; // 4 is the sitting state
-                }
-                else if (this.state == 4) {
-                    if (this.facing == 0) {
-                        if (this.animations[4][0].isAlmostDone(TICK)) {
-                           
-                            this.state = 0; // idle state
-                            this.animations[4][0].resetElapsedTime();
-                        }
-                    }
-                    else if (this.facing == 1) {
-                        if (this.animations[4][1].isAlmostDone(TICK)) {
-                            this.state = 0; // idle state
-                            this.animations[4][1].resetElapsedTime();
-                        }
-                    }
-                }
-
-                else this.state = 0;
-            }
-
+            this.state = 0;
+            this.caged = true
+            this.velocity = 0
         }
-        else this.state = 0;
 
-        
+        if(this.caged && this.health === 10){
+            this.x = centerRect.x + centerRect.width / 2 
+            this.y = centerRect.y - this.BB.height * 2
+            this.velocity = 3
+            this.caged = false
+        }
+
     };
 
     draw(ctx) {
+        // ctx.strokeStyle = 'yellow';
+        // ctx.strokeRect(this.x, this.y, this.BB.width, this.BB.height);
         // ctx.strokeStyle = 'Red';
-        // ctx.strokeRect(this.BB.x, this.BB.y, this.BB.width, this.BB.height);
+        // ctx.strokeRect(window.innerWidth * 0.4 - this.BB.width, window.innerHeight * 0.4 - this.BB.height, window.innerWidth * 0.2 + this.BB.width*2, window.innerHeight * 0.2 + this.BB.height*2);
         // ctx.strokeStyle = "blue";
         // ctx.strokeRect(this.midpoint_x-5, this.midpoint_y-5, 10, 10);
-        this.animations[this.state][this.facing].drawFrame(this.game.clockTick, ctx, this.x, this.y, 2.5);
+        // ctx.fillStyle = "black";
+        // ctx.font = "10px Arial";
+        // ctx.fillText(this.id, this.x + this.BB.width + 10, this.y + this.BB.height + 10);
+        this.animations[this.state][this.facing].drawFrame(this.game.clockTick, ctx, this.x, this.y, 1.2);
         this.healthBar.draw(ctx);
         this.HappyBar.draw(ctx);
     };

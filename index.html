@@ -1,14 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8" />
     <style>
         body {
+            position: relative;
             font-size: 30px;
             font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
         }
+        #wrapper, #menu {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            width: 100vw;
+            height: 100vh;     
+            top: 0;
+            left: 0;      
+        }
+        #menu {
+            z-index: 99;
+        }
+        #header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 80%;
+            height: 100vh; 
+            padding: 20px;
+        }
+        #start-btn {
+            padding: 4px;
+            border-radius: 14px;
+            border: 2px solid black;
+            width: 140px;
+            height: 70px;;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+        }
+        
     </style>
     <meta charset="utf-8">
-    <title>Cat Simulator: TCSS 491</title>
+    <title>Cat Game</title>
   
     <script type="text/javascript" src="./assetmanager.js"></script>
     <script type="text/javascript" src="./timer.js"></script>
@@ -19,6 +59,7 @@
     <script type="text/javascript" src="./animator.js"></script>
     <script type="text/javascript" src="./boundingbox.js"></script>
     <script type="text/javascript" src="./selectionHandler.js"></script>
+    <script type="text/javascript" src="./cage.js"></script>
     <script type="text/javascript" src="./food.js"></script>
     <script type="text/javascript" src="./toy.js"></script>
     <script type="text/javascript" src="./cat.js"></script>
@@ -27,17 +68,26 @@
     
 </head>
 <body>
-
-    <h1 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 48px;">Click a cat to select it!</h1>
-    <h2 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 30px;">Move the cat with WASD ^_^</h2>
-    <h2 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 30px;">Cats will breed if you put them together, but only if they're happy and old enough!</h2>
-    <canvas id="gameWorld" width="1200" height="1200"  style="background-image: url('./carpet-bg.jpg'); border: 1px solid black" tabindex ="0" autofocus></canvas>
-<div> <br />
-<p style="font-size:40px; font-weight:bold; color:#218cff; -webkit-text-stroke-width: 1px;
--webkit-text-stroke-color: black;">HealthBar</p> <p style="font-size:40px; font-weight:bold;  color:#fff891; -webkit-text-stroke-width: 1px;
-            -webkit-text-stroke-color: black;"> Happiness Bar</p>
-
-</div>
-
+    <div id="menu">
+        <div id="header">
+            <div id="header-description">
+                <h2>Welcome to the Schrondinger's Catverse!</h2>
+                <h2>Here is how this game works.</h2>
+                <p>Cats are roaming in the wild without food and play. Your task is to bring the cats into the cage by dragging them into it. You have to hurry, because as the clock ticks, the cats lose XP. Catch those cats moving towards the walls as colliding into them causes more XP loss.</p>
+                <h3>Rules of the game:</h3>
+                <ul>
+                    <ol>All cats do not have the same starting XP.</ol>
+                    <ol>Cats will not leave the cage once inside and their XP stops dropping. They are safe!</ol>
+                    <ol>When a cat XP drops to zero, it dies. When three or more cats die, it's GAME OVER.</ol>
+                </ul>
+                <h3>Are you ready to play?</h3>
+            </div>
+            <div id="start-btn"><h3>BEGIN</h3></div>
+        </div>
+    </div>
+    <div id ='wrapper'>
+        <canvas id="gameWorld" style="background-image: url('./Cats/carpet-bg.jpg');" tabindex ="0"></canvas>
+    </div>
 </body>
 </html>
+
